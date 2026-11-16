@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.RegularExpressions;
 namespace WebApplication1.Models
 {
     public class Group
@@ -15,5 +16,9 @@ namespace WebApplication1.Models
         [ForeignKey(nameof(SpecialityId))]
         public Speciality? Speciality { get; set; }
         public ICollection<Student> Students { get; set; }
+        public bool IsValidGroupName()
+        {
+            return Regex.Match(Name, @"\D*-\d*-\d\d").Success;
+        }
     }
 }
