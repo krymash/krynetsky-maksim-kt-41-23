@@ -1,28 +1,31 @@
 using NLog;
 using NLog.Web;
 using Microsoft.EntityFrameworkCore;
+using WebApplication1.ServiceExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
 var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 
-// Add services to the container.
 try
 {
     builder.Services.AddControllers();
 
-    // Перенесли регистрацию контекста СЮДА (до builder.Build())
     builder.Services.AddDbContext<WebApplication1.Database.StudentDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-    // Learn more about configuring OpenAPI at https://aka.ms
-    builder.Services.AddOpenApi();
+    builder.Services.AddServices();
 
-    var app = builder.Build(); // Сборка приложения теперь строго после сервисов
+    // Подключаем генератор Swagger
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
 
-    // Configure the HTTP request pipeline.
+    var app = builder.Build();
+
+    // Включаем визуальный интерфейс Swagger в режиме разработки
     if (app.Environment.IsDevelopment())
     {
-        app.MapOpenApi();
+        app.UseSwagger();
+        app.UseSwaggerUI();
     }
 
     app.UseAuthorization();
