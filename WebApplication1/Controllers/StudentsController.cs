@@ -1,28 +1,38 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebApplication1.Interfaces.StudentsInterfaces;
-using WebApplication1.Filters.StudentFilters;
 
 namespace WebApplication1.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class StudentsController : ControllerBase
     {
-        private readonly ILogger<StudentsController> _logger;
-        private readonly IStudentService _studentService;
+        private readonly IStudentService _service;
+        public StudentsController(IStudentService service) => _service = service;
 
-        public StudentsController(ILogger<StudentsController> logger, IStudentService studentService)
+        [HttpPost("filter")]
+        public async Task<IActionResult> GetStudents([FromBody] StudentFilter filter, CancellationToken ct) =>
+            Ok(await _service.GetStudentsAsync(filter, ct));
+
+        [HttpPost]
+        public async Task<IActionResult> AddStudent([FromBody] StudentDto dto, CancellationToken ct)
         {
-            _logger = logger;
-            _studentService = studentService;
+            await _service.AddStudentAsync(dto, ct);
+            return Ok("Студент добавлен");
         }
 
-        [HttpPost(Name = "GetStudentsByGroup")]
-        public async Task<IActionResult> GetStudentsByGroupAsync(StudentGroupFilter filter, CancellationToken cancellationToken = default)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateStudent(int id, [FromBody] StudentDto dto, CancellationToken ct)
         {
-            var students = await _studentService.GetStudentsByGroupAsync(filter, cancellationToken);
+            await _service.UpdateStudentAsync(id, dto, ct);
+            return Ok("Данные студента обновлены");
+        }
 
-            return Ok(students);
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteStudent(int id, CancellationToken ct)
+        {
+            await _service.DeleteStudentAsync(id, ct);
+            return Ok("Студент помечен как удаленный");
         }
     }
 }
